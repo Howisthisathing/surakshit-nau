@@ -10,7 +10,7 @@ Surakshit Nau is a unified digital maternal registry for rural India. It helps P
 
 ## Live prototype
 
-Open `index.html` in any browser, or visit the GitHub Pages link for this repository.
+Open https://howisthisathing.github.io/surakshit-nau/
 
 The prototype shows two views working on the same records:
 
