@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Surakshit Nau: a maternal registry prototype for rural India's care teams (hackathon demo, sample data).">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Surakshit Nau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@500;700;800&family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F6FB; --surface:#FFFFFF; --surface-2:#EAF1FB; --ink:#111827; --muted:#4B5563; --line:#D6DFEE;
+  --accent:#1A4FA0; --accent-ink:#FFFFFF; --accent-soft:#DCE7F8;
+  --red:#B42318; --red-soft:#FDECEA; --amber:#8A5300; --amber-soft:#FFF1D0; --green:#1E6B3A; --green-soft:#E1F3E7;
+  --flag-bg:#111827; --flag-ink:#FFFFFF; --frame:#111827; --shadow:0 10px 30px rgba(17,24,39,.10);
+  --display:'Mukta','Noto Sans Devanagari',system-ui,sans-serif;
+  --body:'Noto Sans','Noto Sans Devanagari',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0B1120; --surface:#131C2E; --surface-2:#1A2640; --ink:#E8EEF8; --muted:#A3B0C5; --line:#2A3A57;
+    --accent:#86ADF2; --accent-ink:#0B1120; --accent-soft:#1F3561;
+    --red:#F4A29A; --red-soft:#3A1D1D; --amber:#F3C977; --amber-soft:#3A2E14; --green:#8FD3A5; --green-soft:#16301F;
+    --flag-bg:#E8EEF8; --flag-ink:#0B1120; --frame:#2A3A57; --shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0B1120; --surface:#131C2E; --surface-2:#1A2640; --ink:#E8EEF8; --muted:#A3B0C5; --line:#2A3A57;
+  --accent:#86ADF2; --accent-ink:#0B1120; --accent-soft:#1F3561;
+  --red:#F4A29A; --red-soft:#3A1D1D; --amber:#F3C977; --amber-soft:#3A2E14; --green:#8FD3A5; --green-soft:#16301F;
+  --flag-bg:#E8EEF8; --flag-ink:#0B1120; --frame:#2A3A57; --shadow:0 10px 30px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:0 32px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1360px;margin:0 auto}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-block:18px 12px}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{font-size:30px;font-weight:800;color:var(--accent);letter-spacing:-.01em}
+.brand .hi{font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink)}
+.brand .tag{color:var(--muted);font-size:13px;width:100%}
+.sample{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--amber);background:var(--amber-soft);padding:6px 10px;border-radius:999px}
+.guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-block:4px 18px;padding:0;list-style:none;counter-reset:step}
+.guide li{counter-increment:step;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 48px;position:relative;color:var(--muted);font-size:13px}
+.guide li::before{content:counter(step);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:12px}
+.guide b{color:var(--ink)}
+.tabs{display:none;gap:4px;background:var(--surface-2);padding:4px;border-radius:999px;margin-bottom:16px}
+.tabs button{flex:1;border:0;background:transparent;padding:9px 12px;border-radius:999px;font-weight:600;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+.workspace{display:grid;grid-template-columns:392px minmax(0,1fr);gap:28px;align-items:start}
+.pane-label{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+
+/* phone */
+.phone{background:var(--surface);border:10px solid var(--frame);border-radius:38px;height:790px;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow);position:relative}
+.p-status{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px 8px;background:var(--accent);color:var(--accent-ink);font-size:12px}
+.p-status .who{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.net{display:flex;align-items:center;gap:6px;border:0;background:rgba(255,255,255,.18);color:inherit;padding:4px 10px 4px 6px;border-radius:999px;font-size:12px;font-weight:600;flex-shrink:0}
+.net .dot{width:10px;height:10px;border-radius:50%;background:#7CE29B}
+.net.off .dot{background:#FFB4A8}
+.p-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.p-head h2{font-size:22px;font-weight:700}
+.p-head label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.p-head select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 6px}
+.syncbar{background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:600;padding:7px 16px}
+.p-body{flex:1;overflow-y:auto;padding:14px 16px 20px;display:flex;flex-direction:column;gap:12px}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.count{border-radius:12px;padding:10px;background:var(--surface-2)}
+.count b{display:block;font-family:var(--display);font-size:24px;line-height:1}
+.count span{font-size:12px;color:var(--muted)}
+.count.red b{color:var(--red)} .count.amber b{color:var(--amber)}
+.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:600;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn.small{padding:7px 10px;font-size:13px;border-radius:8px}
+.btn.link{background:none;border:0;color:var(--accent);padding:0;font-weight:600;align-self:flex-start}
+.search{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--surface)}
+.mlist{display:flex;flex-direction:column;gap:8px}
+.mcard{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px}
+.mcard:hover{border-color:var(--accent)}
+.mrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.mname{font-weight:700;font-size:15px}
+.meta{color:var(--muted);font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.chip::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.chip.missed,.chip.past{color:var(--red);background:var(--red-soft)}
+.chip.due{color:var(--amber);background:var(--amber-soft)}
+.chip.ok{color:var(--green);background:var(--green-soft)}
+.chip.flag{color:var(--flag-ink);background:var(--flag-bg)}
+.chip.flag::before{display:none}
+.chip.ref{color:var(--accent);background:var(--accent-soft)}
+.chip.ref::before{display:none}
+.chip.wait{color:var(--amber);background:transparent;border:1px dashed var(--amber)}
+.chip.wait::before{display:none}
+
+/* forms */
+form{display:flex;flex-direction:column;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;font-weight:600}
+.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--surface);width:100%}
+.field .err{color:var(--red);font-size:12px;min-height:0}
+.field.bad input,.field.bad select,.field.bad textarea{border-color:var(--red)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12px;color:var(--muted);background:var(--surface-2);border-radius:10px;padding:9px 11px}
+.derived{display:flex;justify-content:space-between;gap:8px;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:13px}
+.derived b{font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions .btn{flex:1}
+
+/* schedule */
+.sched{display:flex;flex-direction:column;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sched li{list-style:none;display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-top:1px solid var(--line);font-size:13px}
+.sched li:first-child{border-top:0}
+.sched .w{color:var(--muted);font-size:12px}
+.sched ul{margin:0;padding:0}
+.st-done{color:var(--green);font-weight:600}
+.st-missed{color:var(--red);font-weight:600}
+.st-due{color:var(--amber);font-weight:600}
+.st-up{color:var(--muted)}
+.section-h{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.vtable{width:100%;border-collapse:collapse;font-size:13px}
+.vtable th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.vtable td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.scroll-x{overflow-x:auto}
+
+/* dashboard */
+.dash{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.dash-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+.dash-head h2{font-size:24px;font-weight:700}
+.dash-head .meta{font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.kpi{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.kpi b{font-family:var(--display);font-size:30px;line-height:1.05}
+.kpi span{font-size:12px;color:var(--muted)}
+.kpi.red b{color:var(--red)} .kpi.amber b{color:var(--amber)} .kpi.blue b{color:var(--accent)}
+.kpi[aria-pressed="true"]{border-color:var(--accent);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--accent)}
+.split{display:flex;flex-direction:column;gap:14px}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 20px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters select,.filters input{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}
+.filters input{flex:1;min-width:160px}
+.ftag{font-size:12px;color:var(--muted)}
+.dtable{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+.dtable th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.dtable td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.dtable tr.new td{background:var(--accent-soft)}
+.dtable .mname{font-size:14px;white-space:nowrap}
+.villages .mrow{flex-wrap:wrap}
+.empty{color:var(--muted);padding:18px 8px;text-align:center}
+.villages{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.villages h3{font-size:16px;font-weight:700}
+.vrow{display:flex;flex-direction:column;gap:5px}
+.vrow .top2{display:flex;justify-content:space-between;font-size:13px}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--surface-2)}
+.bar i{display:block;height:100%}
+.bar .r{background:var(--red)} .bar .a{background:var(--amber)} .bar .g{background:var(--green)}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.scope{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border-radius:12px;padding:12px 14px;font-size:13px}
+.scope b{color:var(--accent);white-space:nowrap}
+
+/* drawer */
+.overlay{position:fixed;inset:0;background:rgba(11,17,32,.45);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(540px,100%);background:var(--surface);z-index:21;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.2);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.d-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.d-head h3{font-size:22px;font-weight:700}
+.x{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:34px;height:34px;font-size:18px;line-height:1;flex-shrink:0}
+.d-body{flex:1;overflow-y:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:16px}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.box h4{margin:0;font-size:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+.sms{background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:14px;white-space:pre-wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 10px;font-size:12px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:40;display:flex;flex-direction:column;gap:8px;align-items:center;width:min(460px,calc(100% - 32px))}
+.toast{background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:var(--shadow);animation:pop .2s ease-out}
+@keyframes pop{from{transform:translateY(6px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion: reduce){.toast{animation:none}}
+.foot{color:var(--muted);font-size:12px;margin-top:22px}
+
+@media (max-width:1240px){ .kpis{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (max-width:1060px){
+  .tabs{display:flex}
+  .workspace{grid-template-columns:1fr}
+  .workspace[data-view="phone"] .pane-dash{display:none}
+  .workspace[data-view="dash"] .pane-phone{display:none}
+  .pane-phone{max-width:420px;width:100%;margin:0 auto}
+}
+@media (max-width:560px){
+  .phone{border:0;border-radius:16px;height:auto;min-height:640px;box-shadow:none;border:1px solid var(--line)}
+  .p-body{overflow:visible}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dash{padding:14px}
+  .brand h1{font-size:26px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Surakshit Nau</h1><span class="hi">सुरक्षित नौ</span>
+      <span class="tag">Maternal registry prototype for rural care teams: an ASHA's phone and a PHC doctor's dashboard, working on the same records.</span>
+    </div>
+    <span class="sample">Prototype · sample data · all names and IDs are fictional</span>
+  </header>
+
+  <ol class="guide">
+    <li><b>Register a mother offline.</b> On the phone, tap <b>Online</b> to go offline, then register a mother or log a check-up. It saves on the phone.</li>
+    <li><b>Go back online to sync.</b> Tap <b>Offline</b> again. Waiting records reach the PHC dashboard and are highlighted there.</li>
+    <li><b>Follow up from the PHC.</b> Open any mother on the dashboard to record a referral, add the care team's high-risk mark, or preview an SMS reminder in Hindi.</li>
+  </ol>
+
+  <div class="tabs" role="tablist" aria-label="Choose view">
+    <button role="tab" id="tab-phone" aria-selected="true" data-action="view" data-view="phone">ASHA mobile app</button>
+    <button role="tab" id="tab-dash" aria-selected="false" data-action="view" data-view="dash">PHC dashboard</button>
+  </div>
+
+  <main class="workspace" id="workspace" data-view="phone">
+    <section class="pane-phone" aria-label="ASHA mobile app">
+      <div class="pane-label">ASHA mobile app</div>
+      <div class="phone" id="phone"></div>
+    </section>
+    <section class="pane-dash" aria-label="PHC doctor dashboard">
+      <div class="pane-label">PHC doctor dashboard</div>
+      <div class="dash" id="dash"></div>
+    </section>
+  </main>
+
+  <p class="foot">Surakshit Nau records and tracks care. It does not diagnose, score risk, interpret results or recommend treatment. Health values are stored exactly as entered. A high-risk mark is added only by a doctor or ANM, with their own note. The check-up schedule follows India's four-visit antenatal care schedule (ANC 1 by 12 weeks, ANC 2 at 14–26, ANC 3 at 28–34, ANC 4 from 36 weeks). No SMS is sent from this prototype.</p>
+</div>
+
+<div id="drawer-root"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+const DAY = 86400000;
+const today = (()=>{ const d = new Date(); d.setHours(0,0,0,0); return d; })();
+const addDays = (d,n)=> new Date(d.getTime() + n*DAY);
+const diffDays = (a,b)=> Math.round((a - b)/DAY);
+const iso = d => { const z = n => String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); };
+const parseISO = s => { const [y,m,d] = s.split('-').map(Number); const x = new Date(y, m-1, d); x.setHours(0,0,0,0); return x; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(d, lang, year){
+  const o = lang === 'hi' ? {day:'numeric', month:'long'} : {day:'numeric', month:'short'};
+  if (year) o.year = 'numeric';
+  return new Intl.DateTimeFormat(lang === 'hi' ? 'hi-IN' : 'en-IN', o).format(d);
+}
+
+const VILLAGES = { 'Rampur':'रामपुर', 'Sonpur':'सोनपुर', 'Khera Kalan':'खेड़ा कलां' };
+const ASHAS = { 'Rampur':['Kamla Devi','कमला देवी'], 'Sonpur':['Suman Yadav','सुमन यादव'], 'Khera Kalan':['Farida Bano','फरीदा बानो'] };
+const DOCTOR = 'Dr. Anjali Mehta (MO)';
+const ANM = 'Sarita Singh (ANM)';
+const WINDOWS = [ {n:1,s:0,e:12}, {n:2,s:14,e:26}, {n:3,s:28,e:34}, {n:4,s:36,e:40} ];
+
+/* ---------------- sample data ---------------- */
+let seq = 0;
+function mk(name, nameHi, age, village, weeks, visits, extra){
+  seq++;
+  const lmp = addDays(today, -(weeks*7 + 2));
+  const by = ASHAS[village][0] + ' (ASHA)';
+  return Object.assign({
+    id: 'm' + seq, name, nameHi, age, village,
+    abha: '91-' + String(4000 + seq*137).slice(-4) + '-' + String(2210 + seq*311).slice(-4) + '-' + String(1000 + seq*577).slice(-4),
+    phone: '98' + String(10000000 + seq*7331171).slice(-8),
+    lmp, lang:'hi', synced:true, isNew:false,
+    visits: visits.map(([w,hb,s,d,wt,who]) => ({ date: addDays(lmp, w*7 + 1), hb, bpS:s, bpD:d, wt, by: who || by, synced:true })),
+    highRisk:null, referral:null
+  }, extra || {});
+}
+const state = {
+  lang:'en', online:true, screen:'home', motherId:null, phoneSearch:'',
+  kpi:'all', village:'All', dashSearch:'', drawerId:null, smsLang:'hi', drawerForm:null,
+  view:'phone',
+  mothers: [
+    mk('Sunita Devi','सुनीता देवी',24,'Rampur',30,[[10,10.8,110,70,48],[20,10.1,118,76,52]]),
+    mk('Pooja Kumari','पूजा कुमारी',19,'Rampur',22,[[11,11.2,104,68,44]]),
+    mk('Rekha Yadav','रेखा यादव',27,'Rampur',29,[[9,9.6,112,72,50,ANM]],{
+      highRisk:{by:ANM, reason:'Twin pregnancy noted on ultrasound report', date:addDays(today,-60)},
+      referral:{to:'CHC Khera Kalan', date:addDays(today,-9), status:'Pending'} }),
+    mk('Anita Verma','अनीता वर्मा',31,'Rampur',36,[[8,11.0,116,74,55],[18,10.9,120,78,58],[30,10.6,122,80,62,ANM]],{
+      highRisk:{by:DOCTOR, reason:'Previous caesarean delivery (2022)', date:addDays(today,-150)},
+      referral:{to:'District Hospital', date:addDays(today,-20), status:'Seen'} }),
+    mk('Kiran Devi','किरण देवी',22,'Rampur',8,[]),
+    mk('Meena Kumari','मीना कुमारी',25,'Sonpur',33,[[12,11.4,108,70,47],[24,11.0,112,72,51],[30,10.8,114,74,54]]),
+    mk('Savitri Devi','सावित्री देवी',34,'Sonpur',38,[[11,10.2,118,76,53],[22,10.0,124,80,57]],{
+      highRisk:{by:DOCTOR, reason:'Previous stillbirth (history)', date:addDays(today,-170)},
+      referral:{to:'District Hospital', date:addDays(today,-6), status:'Pending'} }),
+    mk('Radha Pal','राधा पाल',20,'Sonpur',16,[[10,11.6,102,66,42]]),
+    mk('Geeta Devi','गीता देवी',29,'Sonpur',27,[[9,11.1,110,70,49],[25,10.7,114,72,54]]),
+    mk('Shabana Bano','शबाना बानो',23,'Khera Kalan',18,[]),
+    mk('Nisha Kumari','निशा कुमारी',26,'Khera Kalan',31,[[12,10.9,106,68,46],[20,10.6,110,70,50],[29,10.4,112,72,53]]),
+    mk('Lakshmi Devi','लक्ष्मी देवी',30,'Khera Kalan',35,[[10,10.4,116,74,52],[24,10.1,118,76,56,ANM]],{
+      highRisk:{by:DOCTOR, reason:'Low-lying placenta noted on scan report', date:addDays(today,-50)},
+      referral:{to:'District Hospital', date:addDays(today,-4), status:'Pending'} })
+  ]
+};
+const ASHA_VILLAGE = 'Rampur';
+
+/* ---------------- ANC schedule status ---------------- */
+function anc(m, visits){
+  const wins = WINDOWS.map(w => ({ n:w.n, s:w.s, e:w.e, start:addDays(m.lmp, w.s*7), end:addDays(m.lmp, w.e*7 + 6), visit:null }));
+  visits.slice().sort((a,b)=>a.date-b.date).forEach(v => {
+    const wk = diffDays(v.date, m.lmp) / 7;
+    const w = wins.find(x => wk < x.e + 1);
+    if (w && !w.visit) w.visit = v;
+  });
+  const closed = wins.filter(w => today > w.end);
+  const current = wins.find(w => today <= w.end);
+  const last = closed[closed.length - 1];
+  let st;
+  if (!current) st = { kind:'past' };
+  else if (current.visit) st = { kind:'ok', next: wins[wins.indexOf(current) + 1] || null };
+  else if (last && !last.visit) st = { kind:'missed', win:last, overdue: diffDays(today, last.end) };
+  else if (today >= current.start) st = { kind:'due', win:current, by: current.end };
+  else st = { kind:'ok', next: current };
+  st.wins = wins;
+  st.weeks = Math.floor(diffDays(today, m.lmp) / 7);
+  st.edd = addDays(m.lmp, 280);
+  return st;
+}
+const allVisits = m => m.visits;
+const syncedVisits = m => m.visits.filter(v => v.synced);
+function rank(st){
+  if (st.kind === 'past') return -10000;
+  if (st.kind === 'missed') return -st.overdue;
+  if (st.kind === 'due') return 1000 + diffDays(st.by, today);
+  return 5000;
+}
+
+/* ---------------- text ---------------- */
+const T = {
+  en:{
+    title:'My mothers', total:'Registered', missed:'Missed', due:'Due now', search:'Search by name',
+    register:'+ Register a pregnant woman', weeks:n=>n+' wks',
+    stMissed:(n,d)=>'Missed ANC '+n+' · '+d+' days ago', stDue:(n,d)=>'ANC '+n+' due by '+d,
+    stOk:(nx,d)=> nx ? 'On track · ANC '+nx+' from '+d : 'All 4 check-ups done', stPast:'Past due date · record delivery',
+    flag:'High-risk · marked by care team', refP:'Referral pending', refS:'Referral completed', wait:'Waiting to sync',
+    waiting:n=> n+' record'+(n>1?'s':'')+' saved on phone, waiting to sync', online:'Online', offline:'Offline', lang:'Language',
+    regTitle:'Register', fName:'Full name', fAge:'Age (years)', fAbha:'ABHA number (14 digits)', fPhone:'Mobile number (10 digits)',
+    fLmp:'First day of last period (LMP)', fVillage:'Village', edd:'Expected delivery date', ga:'Weeks of pregnancy today',
+    save:'Save', cancel:'Cancel', back:'← Back', logTitle:'Log a check-up', logBtn:'+ Log a check-up',
+    fDate:'Date of check-up', fHb:'Haemoglobin (g/dL)', fBp:'Blood pressure (mmHg)', fSys:'Upper', fDia:'Lower', fWt:'Weight (kg)',
+    note:'Values are saved exactly as measured. Only the doctor or ANM interprets them.',
+    sched:'Check-up schedule', visits:'Recorded check-ups', none:'No check-ups recorded yet.',
+    done:d=>'Done on '+d, missedL:'Missed', dueL:d=>'Due by '+d, upL:d=>'From '+d,
+    wk:(s,e)=> e===40 ? s+' weeks to delivery' : (s===0 ? 'By '+e+' weeks' : s+'–'+e+' weeks'),
+    savedOff:'Saved on the phone. It will reach the PHC when you are back online.', savedOn:'Saved and sent to the PHC.',
+    synced:n=> n+' record'+(n>1?'s':'')+' sent to PHC Sonpur.', goneOff:'Offline. New records will be saved on the phone.',
+    req:'Please fill this in.', eAbha:'ABHA number must have 14 digits.', ePhone:'Mobile number must have 10 digits.',
+    eAge:'Enter an age between 14 and 55.', eLmp:'Choose a date within the last 42 weeks.', eFuture:'This date cannot be in the future.',
+    eRange:(a,b)=>'Check for a typo: enter a value between '+a+' and '+b+'.', eBefore:'This date is before the LMP.',
+    date:'Date', hb:'Hb', bp:'BP', wt:'Wt', by:'By', ashaLine:'ASHA: Kamla Devi · Rampur', noMatch:'No one matches that name.',
+    refTo:(to,d)=>'Referred to '+to+' on '+d
+  },
+  hi:{
+    title:'मेरी माताएँ', total:'पंजीकृत', missed:'छूटी जाँच', due:'जाँच बाकी', search:'नाम से खोजें',
+    register:'+ नई गर्भवती का पंजीकरण', weeks:n=>n+' सप्ताह',
+    stMissed:(n,d)=>'ANC '+n+' छूटी · '+d+' दिन पहले', stDue:(n,d)=>'ANC '+n+' '+d+' तक',
+    stOk:(nx,d)=> nx ? 'समय पर · ANC '+nx+' '+d+' से' : 'चारों जाँचें पूरी', stPast:'प्रसव की तारीख निकल गई · प्रसव दर्ज करें',
+    flag:'उच्च जोखिम · स्वास्थ्य टीम द्वारा चिह्नित', refP:'रेफ़रल बाकी', refS:'रेफ़रल पूरा', wait:'सिंक बाकी',
+    waiting:n=> n+' रिकॉर्ड फ़ोन में सेव हैं, सिंक होना बाकी', online:'ऑनलाइन', offline:'ऑफ़लाइन', lang:'भाषा',
+    regTitle:'पंजीकरण', fName:'पूरा नाम', fAge:'उम्र (वर्ष)', fAbha:'आभा (ABHA) नंबर — 14 अंक', fPhone:'मोबाइल नंबर — 10 अंक',
+    fLmp:'आखिरी माहवारी का पहला दिन (LMP)', fVillage:'गाँव', edd:'प्रसव की संभावित तारीख', ga:'आज गर्भ के सप्ताह',
+    save:'सेव करें', cancel:'रद्द करें', back:'← वापस', logTitle:'जाँच दर्ज करें', logBtn:'+ जाँच दर्ज करें',
+    fDate:'जाँच की तारीख', fHb:'हीमोग्लोबिन (g/dL)', fBp:'ब्लड प्रेशर (mmHg)', fSys:'ऊपर वाला', fDia:'नीचे वाला', fWt:'वज़न (kg)',
+    note:'मान जैसे मापे गए, वैसे ही सेव होते हैं। इनकी व्याख्या केवल डॉक्टर या ANM करते हैं।',
+    sched:'जाँच का कार्यक्रम', visits:'दर्ज जाँचें', none:'अभी कोई जाँच दर्ज नहीं है।',
+    done:d=>d+' को हुई', missedL:'छूटी', dueL:d=>d+' तक करनी है', upL:d=>d+' से',
+    wk:(s,e)=> e===40 ? s+' सप्ताह से प्रसव तक' : (s===0 ? e+' सप्ताह तक' : s+'–'+e+' सप्ताह'),
+    savedOff:'फ़ोन में सेव हो गया। इंटरनेट मिलते ही PHC को भेज दिया जाएगा।', savedOn:'सेव हो गया और PHC को भेज दिया गया।',
+    synced:n=> n+' रिकॉर्ड PHC सोनपुर को भेज दिए गए।', goneOff:'ऑफ़लाइन। नए रिकॉर्ड फ़ोन में सेव होंगे।',
+    req:'यह जानकारी भरें।', eAbha:'आभा नंबर में 14 अंक होने चाहिए।', ePhone:'मोबाइल नंबर में 10 अंक होने चाहिए।',
+    eAge:'14 से 55 के बीच उम्र लिखें।', eLmp:'पिछले 42 सप्ताह के भीतर की तारीख चुनें।', eFuture:'आने वाली तारीख नहीं चुन सकते।',
+    eRange:(a,b)=>'टाइपिंग की जाँच करें: '+a+' से '+b+' के बीच का मान लिखें।', eBefore:'यह तारीख LMP से पहले की है।',
+    date:'तारीख', hb:'Hb', bp:'BP', wt:'वज़न', by:'किसने', ashaLine:'आशा: कमला देवी · रामपुर', noMatch:'इस नाम से कोई नहीं मिला।',
+    refTo:(to,d)=>to+' को रेफ़र किया गया, '+d
+  }
+};
+const t = () => T[state.lang];
+const nameOf = (m, lang) => (lang === 'hi' && m.nameHi) ? m.nameHi : m.name;
+const villageOf = (v, lang) => lang === 'hi' ? (VILLAGES[v] || v) : v;
+
+function statusChip(st, lang){
+  const L = T[lang];
+  if (st.kind === 'missed') return '<span class="chip missed">'+esc(L.stMissed(st.win.n, st.overdue))+'</span>';
+  if (st.kind === 'due') return '<span class="chip due">'+esc(L.stDue(st.win.n, fmt(st.by, lang)))+'</span>';
+  if (st.kind === 'past') return '<span class="chip past">'+esc(L.stPast)+'</span>';
+  return '<span class="chip ok">'+esc(L.stOk(st.next && st.next.n, st.next ? fmt(st.next.start, lang) : ''))+'</span>';
+}
+
+/* ---------------- toasts ---------------- */
+function toast(msg){
+  const box = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(()=> el.remove(), 3600);
+}
+
+/* ---------------- phone ---------------- */
+const phoneMothers = () => state.mothers.filter(m => m.village === ASHA_VILLAGE);
+const pendingCount = () => state.mothers.reduce((n,m) => n + (m.synced ? 0 : 1) + m.visits.filter(v => !v.synced && m.synced).length, 0);
+
+function renderPhone(){
+  const L = t(), lang = state.lang;
+  const el = document.getElementById('phone');
+  const pend = pendingCount();
+  let head = '<div class="p-status"><span class="who">'+esc(L.ashaLine)+'</span>'+
+    '<button class="net'+(state.online?'':' off')+'" data-action="net" aria-pressed="'+(!state.online)+'" title="Switch between online and offline"><span class="dot"></span>'+esc(state.online?L.online:L.offline)+'</button></div>';
+  let title = L.title;
+  if (state.screen === 'register') title = L.regTitle;
+  if (state.screen === 'mother' || state.screen === 'log') { const m = byId(state.motherId); title = nameOf(m, lang); }
+  head += '<div class="p-head"><h2>'+esc(title)+'</h2><label for="p-lang">'+esc(L.lang)+
+    '<select id="p-lang" data-action="lang"><option value="en"'+(lang==='en'?' selected':'')+'>English</option><option value="hi"'+(lang==='hi'?' selected':'')+'>हिन्दी</option></select></label></div>';
+  if (pend) head += '<div class="syncbar">'+esc(L.waiting(pend))+'</div>';
+  let body = '';
+  if (state.screen === 'home') body = phoneHome();
+  else if (state.screen === 'register') body = phoneRegister();
+  else if (state.screen === 'mother') body = phoneMother();
+  else if (state.screen === 'log') body = phoneLog();
+  el.innerHTML = head + '<div class="p-body" id="p-body">'+body+'</div>';
+  if (state.screen === 'home') renderPhoneList();
+}
+function phoneHome(){
+  const L = t();
+  const ms = phoneMothers().map(m => anc(m, allVisits(m)));
+  const missed = ms.filter(s => s.kind === 'missed' || s.kind === 'past').length;
+  const due = ms.filter(s => s.kind === 'due').length;
+  return '<div class="counts">'+
+    '<div class="count"><b class="num">'+ms.length+'</b><span>'+esc(L.total)+'</span></div>'+
+    '<div class="count red"><b class="num">'+missed+'</b><span>'+esc(L.missed)+'</span></div>'+
+    '<div class="count amber"><b class="num">'+due+'</b><span>'+esc(L.due)+'</span></div></div>'+
+    '<button class="btn" data-action="goto" data-screen="register">'+esc(L.register)+'</button>'+
+    '<input class="search" id="p-search" type="search" placeholder="'+esc(L.search)+'" aria-label="'+esc(L.search)+'" value="'+esc(state.phoneSearch)+'">'+
+    '<div class="mlist" id="p-list"></div>';
+}
+function renderPhoneList(){
+  const L = t(), lang = state.lang;
+  const q = state.phoneSearch.trim().toLowerCase();
+  const list = phoneMothers()
+    .filter(m => !q || m.name.toLowerCase().includes(q) || (m.nameHi||'').includes(q))
+    .map(m => ({m, st: anc(m, allVisits(m))}))
+    .sort((a,b) => rank(a.st) - rank(b.st));
+  const box = document.getElementById('p-list');
+  if (!box) return;
+  box.innerHTML = list.length ? list.map(({m,st}) =>
+    '<button class="mcard" data-action="open-phone" data-id="'+m.id+'">'+
+      '<span class="mrow"><span class="mname">'+esc(nameOf(m, lang))+'</span><span class="meta num">'+esc(L.weeks(st.weeks))+'</span></span>'+
+      '<span class="chips">'+statusChip(st, lang)+
+        (m.highRisk ? '<span class="chip flag">'+esc(L.flag)+'</span>' : '')+
+        (m.referral && m.referral.status === 'Pending' ? '<span class="chip ref">'+esc(L.refP)+'</span>' : '')+
+        ((!m.synced || m.visits.some(v=>!v.synced)) ? '<span class="chip wait">'+esc(L.wait)+'</span>' : '')+
+      '</span></button>').join('') : '<p class="meta">'+esc(L.noMatch)+'</p>';
+}
+function field(id, label, input, hint){
+  return '<div class="field" id="f-'+id+'"><label for="'+id+'">'+label+'</label>'+input+(hint||'')+'<span class="err" id="e-'+id+'"></span></div>';
+}
+function phoneRegister(){
+  const L = t();
+  const d = state.regDraft || {};
+  return '<form id="reg-form" novalidate>'+
+    field('r-name', esc(L.fName), '<input id="r-name" autocomplete="off" value="'+esc(d.name||'')+'">')+
+    '<div class="pair">'+
+      field('r-age', esc(L.fAge), '<input id="r-age" inputmode="numeric" value="'+esc(d.age||'')+'">')+
+      field('r-village', esc(L.fVillage), '<select id="r-village"><option value="Rampur">'+esc(villageOf('Rampur', state.lang))+'</option></select>')+
+    '</div>'+
+    field('r-abha', esc(L.fAbha), '<input id="r-abha" inputmode="numeric" placeholder="91-1234-5678-9012" value="'+esc(d.abha||'')+'">')+
+    field('r-phone', esc(L.fPhone), '<input id="r-phone" inputmode="numeric" value="'+esc(d.phone||'')+'">')+
+    field('r-lmp', esc(L.fLmp), '<input id="r-lmp" type="date" max="'+iso(today)+'" min="'+iso(addDays(today,-294))+'" value="'+esc(d.lmp||'')+'">')+
+    '<div class="derived" id="r-derived" hidden></div>'+
+    '<div class="actions"><button type="button" class="btn ghost" data-action="goto" data-screen="home">'+esc(L.cancel)+'</button><button class="btn" type="submit">'+esc(L.save)+'</button></div>'+
+  '</form>';
+}
+function phoneMother(){
+  const L = t(), lang = state.lang;
+  const m = byId(state.motherId);
+  const st = anc(m, allVisits(m));
+  let h = '<button class="btn link" data-action="goto" data-screen="home">'+esc(L.back)+'</button>';
+  h += '<div class="derived"><span>'+esc(villageOf(m.village, lang))+' · '+esc(L.weeks(st.weeks))+'</span><span>'+esc(L.edd)+': <b>'+esc(fmt(st.edd, lang, true))+'</b></span></div>';
+  h += '<div class="chips">'+statusChip(st, lang)+(m.highRisk?'<span class="chip flag">'+esc(L.flag)+'</span>':'')+'</div>';
+  if (m.referral) h += '<div class="hint">'+esc(L.refTo(m.referral.to, fmt(m.referral.date, lang)))+' · <b>'+esc(m.referral.status==='Pending'?L.refP:L.refS)+'</b></div>';
+  h += '<button class="btn" data-action="goto" data-screen="log">'+esc(L.logBtn)+'</button>';
+  h += '<div class="section-h">'+esc(L.sched)+'</div><div class="sched"><ul>'+st.wins.map(w => {
+    let s;
+    if (w.visit) s = '<span class="st-done">'+esc(L.done(fmt(w.visit.date, lang)))+'</span>';
+    else if (today > w.end) s = '<span class="st-missed">'+esc(L.missedL)+'</span>';
+    else if (today >= w.start) s = '<span class="st-due">'+esc(L.dueL(fmt(w.end, lang)))+'</span>';
+    else s = '<span class="st-up">'+esc(L.upL(fmt(w.start, lang)))+'</span>';
+    return '<li><span><b>ANC '+w.n+'</b><br><span class="w">'+esc(L.wk(w.s, w.e))+'</span></span>'+s+'</li>';
+  }).join('')+'</ul></div>';
+  h += '<div class="section-h">'+esc(L.visits)+'</div>';
+  h += m.visits.length ? '<div class="scroll-x">'+visitTable(m, L, lang, true)+'</div>' : '<p class="meta">'+esc(L.none)+'</p>';
+  return h;
+}
+function visitTable(m, L, lang, showWait){
+  const vs = m.visits.slice().sort((a,b)=>b.date-a.date);
+  return '<table class="vtable num"><thead><tr><th>'+esc(L.date)+'</th><th>'+esc(L.hb)+'</th><th>'+esc(L.bp)+'</th><th>'+esc(L.wt)+'</th></tr></thead><tbody>'+
+    vs.map(v => '<tr><td>'+esc(fmt(v.date, lang))+(showWait && !v.synced ? '<br><span class="chip wait">'+esc(L.wait)+'</span>':'')+'</td><td>'+(v.hb!=null?esc(v.hb):'–')+'</td><td>'+(v.bpS?esc(v.bpS+'/'+v.bpD):'–')+'</td><td>'+(v.wt!=null?esc(v.wt):'–')+'</td></tr>').join('')+
+    '</tbody></table>';
+}
+function phoneLog(){
+  const L = t();
+  const m = byId(state.motherId);
+  return '<button class="btn link" type="button" data-action="goto" data-screen="mother">'+esc(L.back)+'</button>'+
+  '<form id="log-form" novalidate>'+
+    field('l-date', esc(L.fDate), '<input id="l-date" type="date" max="'+iso(today)+'" min="'+iso(m.lmp)+'" value="'+iso(today)+'">')+
+    field('l-hb', esc(L.fHb), '<input id="l-hb" inputmode="decimal">')+
+    '<div class="field"><label>'+esc(L.fBp)+'</label><div class="pair">'+
+      '<div class="field" id="f-l-sys"><input id="l-sys" inputmode="numeric" placeholder="'+esc(L.fSys)+'" aria-label="'+esc(L.fBp+' '+L.fSys)+'"><span class="err" id="e-l-sys"></span></div>'+
+      '<div class="field" id="f-l-dia"><input id="l-dia" inputmode="numeric" placeholder="'+esc(L.fDia)+'" aria-label="'+esc(L.fBp+' '+L.fDia)+'"><span class="err" id="e-l-dia"></span></div>'+
+    '</div></div>'+
+    field('l-wt', esc(L.fWt), '<input id="l-wt" inputmode="decimal">')+
+    '<p class="hint">'+esc(L.note)+'</p>'+
+    '<div class="actions"><button type="button" class="btn ghost" data-action="goto" data-screen="mother">'+esc(L.cancel)+'</button><button class="btn" type="submit">'+esc(L.save)+'</button></div>'+
+  '</form>';
+}
+
+/* ---------------- dashboard ---------------- */
+function dashRows(){
+  return state.mothers.filter(m => m.synced).map(m => ({ m, st: anc(m, syncedVisits(m)) }));
+}
+function renderDash(){
+  const el = document.getElementById('dash');
+  const rows = dashRows();
+  const k = {
+    all: rows.length,
+    missed: rows.filter(r => r.st.kind === 'missed' || r.st.kind === 'past').length,
+    due: rows.filter(r => r.st.kind === 'due').length,
+    flag: rows.filter(r => r.m.highRisk).length,
+    ref: rows.filter(r => r.m.referral && r.m.referral.status === 'Pending').length
+  };
+  const kpi = (key, n, label, cls) => '<button class="kpi '+cls+'" data-action="kpi" data-kpi="'+key+'" aria-pressed="'+(state.kpi===key)+'"><b class="num">'+n+'</b><span>'+label+'</span></button>';
+  const villages = Object.keys(VILLAGES).map(v => {
+    const r = rows.filter(x => x.m.village === v);
+    const mi = r.filter(x => x.st.kind === 'missed' || x.st.kind === 'past').length;
+    const du = r.filter(x => x.st.kind === 'due').length;
+    const ok = r.length - mi - du;
+    const pct = n => r.length ? (n / r.length * 100) : 0;
+    return '<div class="vrow"><div class="top2"><b>'+esc(v)+'</b><span class="meta num">'+mi+' missed · '+du+' due · '+r.length+' total</span></div>'+
+      '<div class="bar" role="img" aria-label="'+esc(v)+': '+mi+' missed, '+du+' due, '+ok+' on track"><i class="r" style="width:'+pct(mi)+'%"></i><i class="a" style="width:'+pct(du)+'%"></i><i class="g" style="width:'+pct(ok)+'%"></i></div></div>';
+  }).join('');
+  el.innerHTML =
+    '<div class="dash-head"><div><h2>PHC Sonpur · Antenatal follow-up</h2><div class="meta">'+esc(DOCTOR)+' · '+esc(fmt(today,'en',true))+'</div></div>'+
+      '<div class="meta">3 villages · 3 ASHAs · 1 ANM</div></div>'+
+    '<div class="kpis">'+
+      kpi('all', k.all, 'Registered pregnancies', 'blue')+
+      kpi('missed', k.missed, 'Missed a check-up', 'red')+
+      kpi('due', k.due, 'Check-up due now', 'amber')+
+      kpi('flag', k.flag, 'High-risk, marked by care team', '')+
+      kpi('ref', k.ref, 'Referrals pending', 'blue')+
+    '</div>'+
+    '<div class="split">'+
+    '<aside class="villages"><div class="mrow"><h3>Follow-up by village</h3><div class="legend"><span><i style="background:var(--red)"></i>Missed</span><span><i style="background:var(--amber)"></i>Due now</span><span><i style="background:var(--green)"></i>On track</span></div></div><div class="vgrid">'+villages+'</div></aside>'+
+    '<div style="display:flex;flex-direction:column;gap:12px;min-width:0">'+
+      '<div class="filters"><select id="d-village" aria-label="Village"><option value="All">All villages</option>'+
+        Object.keys(VILLAGES).map(v => '<option'+(state.village===v?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select>'+
+        '<input id="d-search" type="search" placeholder="Search mother, ABHA or ASHA" aria-label="Search" value="'+esc(state.dashSearch)+'">'+
+        '<span class="ftag" id="d-count"></span></div>'+
+      '<div class="scroll-x"><table class="dtable"><thead><tr><th>Mother</th><th>Village · ASHA</th><th>Weeks</th><th>Next action</th><th>Care-team mark</th><th>Referral</th><th></th></tr></thead><tbody id="d-body"></tbody></table></div>'+
+    '</div>'+
+    '</div>'+
+    '<div class="scope"><b>Within scope</b><span>This dashboard lists who needs follow-up. It does not diagnose, score risk or suggest treatment. High-risk marks and referral decisions are made and entered by the doctor or ANM.</span></div>';
+  renderDashTable();
+}
+function renderDashTable(){
+  const q = state.dashSearch.trim().toLowerCase();
+  let rows = dashRows();
+  if (state.village !== 'All') rows = rows.filter(r => r.m.village === state.village);
+  if (state.kpi === 'missed') rows = rows.filter(r => r.st.kind === 'missed' || r.st.kind === 'past');
+  if (state.kpi === 'due') rows = rows.filter(r => r.st.kind === 'due');
+  if (state.kpi === 'flag') rows = rows.filter(r => r.m.highRisk);
+  if (state.kpi === 'ref') rows = rows.filter(r => r.m.referral && r.m.referral.status === 'Pending');
+  if (q) rows = rows.filter(r => (r.m.name+' '+r.m.abha+' '+ASHAS[r.m.village][0]).toLowerCase().includes(q));
+  rows.sort((a,b) => (b.m.isNew - a.m.isNew) || (rank(a.st) - rank(b.st)));
+  const body = document.getElementById('d-body');
+  if (!body) return;
+  document.getElementById('d-count').textContent = rows.length + ' shown';
+  body.innerHTML = rows.length ? rows.map(({m,st}) =>
+    '<tr class="'+(m.isNew?'new':'')+'">'+
+      '<td><div class="mname">'+esc(m.name)+'</div><div class="meta num">'+m.age+' yrs · ABHA …'+esc(m.abha.slice(-4))+'</div></td>'+
+      '<td>'+esc(m.village)+'<div class="meta">'+esc(ASHAS[m.village][0])+'</div></td>'+
+      '<td class="num">'+st.weeks+'</td>'+
+      '<td>'+statusChip(st, 'en')+'</td>'+
+      '<td>'+(m.highRisk ? '<span class="chip flag">High-risk</span><div class="meta">'+esc(m.highRisk.by)+'</div>' : '<span class="meta">None</span>')+'</td>'+
+      '<td>'+(m.referral ? '<span class="chip ref">'+esc(m.referral.status)+'</span><div class="meta">'+esc(m.referral.to)+'</div>' : '<span class="meta">None</span>')+'</td>'+
+      '<td><button class="btn small ghost" data-action="open-drawer" data-id="'+m.id+'">Open</button></td>'+
+    '</tr>').join('') : '<tr><td colspan="7" class="empty">No mothers match these filters.</td></tr>';
+}
+
+/* ---------------- drawer ---------------- */
+function smsText(m, st, lang){
+  const first = nameOf(m, lang).split(' ')[0];
+  const asha = lang === 'hi' ? ASHAS[m.village][1] : ASHAS[m.village][0];
+  if (lang === 'hi'){
+    const phc = 'PHC सोनपुर';
+    let msg;
+    if (st.kind === 'missed') msg = 'नमस्ते '+first+' जी, आपकी ANC '+st.win.n+' जाँच अभी बाकी है। कृपया जल्द से जल्द '+phc+' आएँ या आशा '+asha+' जी से बात करें।';
+    else if (st.kind === 'due') msg = 'नमस्ते '+first+' जी, आपकी ANC '+st.win.n+' जाँच '+fmt(st.by,'hi')+' तक होनी है। कृपया '+phc+' आएँ या आशा '+asha+' जी से बात करें।';
+    else if (st.kind === 'past') msg = 'नमस्ते '+first+' जी, कृपया आशा '+asha+' जी को अपने प्रसव की जानकारी दें।';
+    else msg = st.next ? 'नमस्ते '+first+' जी, आपकी अगली जाँच (ANC '+st.next.n+') '+fmt(st.next.start,'hi')+' से शुरू होगी।' : 'नमस्ते '+first+' जी, आपकी चारों जाँचें पूरी हो गई हैं। प्रसव की योजना के लिए आशा '+asha+' जी से बात करें।';
+    const toAsha = 'आशा '+asha+' जी: '+nameOf(m,'hi')+' ('+villageOf(m.village,'hi')+') की '+(st.win ? 'ANC '+st.win.n+' जाँच' : 'अगली जाँच')+' के लिए कृपया घर जाकर मिलें।';
+    return { mother: msg+' – सुरक्षित नौ', asha: toAsha+' – सुरक्षित नौ' };
+  }
+  let msg;
+  if (st.kind === 'missed') msg = 'Namaste '+first+' ji, your ANC '+st.win.n+' check-up is still pending. Please visit PHC Sonpur soon or speak to ASHA '+asha+'.';
+  else if (st.kind === 'due') msg = 'Namaste '+first+' ji, your ANC '+st.win.n+' check-up is due by '+fmt(st.by,'en')+'. Please visit PHC Sonpur or speak to ASHA '+asha+'.';
+  else if (st.kind === 'past') msg = 'Namaste '+first+' ji, please share your delivery details with ASHA '+asha+'.';
+  else msg = st.next ? 'Namaste '+first+' ji, your next check-up (ANC '+st.next.n+') opens from '+fmt(st.next.start,'en')+'.' : 'Namaste '+first+' ji, all four check-ups are done. Please plan your delivery with ASHA '+asha+'.';
+  const toAsha = 'ASHA '+asha+': please visit '+m.name+' ('+m.village+') for her '+(st.win ? 'ANC '+st.win.n+' check-up' : 'next check-up')+'.';
+  return { mother: msg+' – Surakshit Nau', asha: toAsha+' – Surakshit Nau' };
+}
+function renderDrawer(){
+  const root = document.getElementById('drawer-root');
+  if (!state.drawerId){ root.innerHTML = ''; return; }
+  const m = byId(state.drawerId);
+  const st = anc(m, syncedVisits(m));
+  const L = T.en;
+  const f = state.drawerForm;
+  let flagBox = '<div class="box"><h4>Care-team high-risk mark</h4>';
+  if (f === 'flag'){
+    flagBox += '<form id="flag-form" novalidate>'+
+      field('fl-by','Marked by','<select id="fl-by"><option>'+esc(DOCTOR)+'</option><option>'+esc(ANM)+'</option></select>')+
+      field('fl-reason','Clinician\'s note','<textarea id="fl-reason" rows="2" placeholder="Written by the doctor or ANM"></textarea>')+
+      '<div class="actions"><button type="button" class="btn ghost small" data-action="dform" data-form="">Cancel</button><button class="btn small" type="submit">Save mark</button></div></form>';
+  } else if (m.highRisk){
+    flagBox += '<div class="chips"><span class="chip flag">High-risk</span></div><dl class="kv"><dt>Note</dt><dd>'+esc(m.highRisk.reason)+'</dd><dt>By</dt><dd>'+esc(m.highRisk.by)+'</dd><dt>On</dt><dd>'+esc(fmt(m.highRisk.date,'en',true))+'</dd></dl>'+
+      '<div class="actions"><button class="btn ghost small" data-action="unflag">Remove mark</button></div>';
+  } else {
+    flagBox += '<p class="meta">No mark. Only a doctor or ANM can add one, with their own note.</p><div class="actions"><button class="btn ghost small" data-action="dform" data-form="flag">Add high-risk mark</button></div>';
+  }
+  flagBox += '</div>';
+
+  let refBox = '<div class="box"><h4>Referral</h4>';
+  if (f === 'ref'){
+    refBox += '<form id="ref-form" novalidate>'+
+      field('rf-to','Referred to','<select id="rf-to"><option>CHC Khera Kalan</option><option>District Hospital</option></select>')+
+      field('rf-date','Date','<input id="rf-date" type="date" max="'+iso(today)+'" value="'+iso(today)+'">')+
+      '<div class="actions"><button type="button" class="btn ghost small" data-action="dform" data-form="">Cancel</button><button class="btn small" type="submit">Save referral</button></div></form>';
+  } else if (m.referral){
+    refBox += '<dl class="kv"><dt>To</dt><dd>'+esc(m.referral.to)+'</dd><dt>On</dt><dd>'+esc(fmt(m.referral.date,'en',true))+'</dd><dt>Status</dt><dd>'+esc(m.referral.status)+(m.referral.status==='Pending' ? ' · '+diffDays(today, m.referral.date)+' days' : '')+'</dd></dl>'+
+      '<div class="actions">'+(m.referral.status==='Pending' ? '<button class="btn small" data-action="ref-seen">Mark as seen at facility</button>' : '')+'<button class="btn ghost small" data-action="dform" data-form="ref">Record new referral</button></div>';
+  } else {
+    refBox += '<p class="meta">No referral recorded.</p><div class="actions"><button class="btn ghost small" data-action="dform" data-form="ref">Record referral</button></div>';
+  }
+  refBox += '</div>';
+
+  const sms = smsText(m, st, state.smsLang);
+  const smsBox = '<div class="box"><div class="mrow"><h4>SMS reminder</h4><div class="seg" role="group" aria-label="SMS language">'+
+      '<button data-action="smslang" data-lang="hi" aria-pressed="'+(state.smsLang==='hi')+'">हिन्दी</button><button data-action="smslang" data-lang="en" aria-pressed="'+(state.smsLang==='en')+'">English</button></div></div>'+
+    '<div class="meta">To mother · '+esc(m.phone.slice(0,2)+'••••••'+m.phone.slice(-2))+'</div><div class="sms">'+esc(sms.mother)+'</div>'+
+    '<div class="meta">To ASHA · '+esc(ASHAS[m.village][0])+'</div><div class="sms">'+esc(sms.asha)+'</div>'+
+    '<div class="actions"><button class="btn small" data-action="send-sms">Queue both reminders</button></div></div>';
+
+  root.innerHTML = '<div class="overlay" data-action="close"></div>'+
+    '<aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title">'+
+    '<div class="d-head"><div><h3 id="d-title">'+esc(m.name)+'</h3><div class="meta">'+esc(m.village)+' · ASHA '+esc(ASHAS[m.village][0])+'</div></div><button class="x" data-action="close" aria-label="Close">×</button></div>'+
+    '<div class="d-body">'+
+      '<div class="chips">'+statusChip(st,'en')+'</div>'+
+      '<dl class="kv num"><dt>ABHA</dt><dd>'+esc(m.abha)+'</dd><dt>Age</dt><dd>'+m.age+' years</dd><dt>LMP</dt><dd>'+esc(fmt(m.lmp,'en',true))+'</dd><dt>Expected delivery</dt><dd>'+esc(fmt(st.edd,'en',true))+'</dd><dt>Weeks today</dt><dd>'+st.weeks+'</dd></dl>'+
+      '<div class="section-h">Check-up schedule</div><div class="sched"><ul>'+st.wins.map(w => {
+        let s;
+        if (w.visit) s = '<span class="st-done">'+esc(L.done(fmt(w.visit.date,'en')))+'</span>';
+        else if (today > w.end) s = '<span class="st-missed">Missed</span>';
+        else if (today >= w.start) s = '<span class="st-due">'+esc(L.dueL(fmt(w.end,'en')))+'</span>';
+        else s = '<span class="st-up">'+esc(L.upL(fmt(w.start,'en')))+'</span>';
+        return '<li><span><b>ANC '+w.n+'</b><br><span class="w">'+esc(L.wk(w.s,w.e))+'</span></span>'+s+'</li>';
+      }).join('')+'</ul></div>'+
+      '<div class="section-h">Recorded values (as entered)</div>'+
+      (syncedVisits(m).length ? '<div class="scroll-x"><table class="vtable num"><thead><tr><th>Date</th><th>Week</th><th>Hb g/dL</th><th>BP mmHg</th><th>Wt kg</th><th>Recorded by</th></tr></thead><tbody>'+
+        syncedVisits(m).slice().sort((a,b)=>b.date-a.date).map(v => '<tr><td>'+esc(fmt(v.date,'en'))+'</td><td>'+Math.floor(diffDays(v.date,m.lmp)/7)+'</td><td>'+(v.hb!=null?esc(v.hb):'–')+'</td><td>'+(v.bpS?esc(v.bpS+'/'+v.bpD):'–')+'</td><td>'+(v.wt!=null?esc(v.wt):'–')+'</td><td>'+esc(v.by)+'</td></tr>').join('')+
+        '</tbody></table></div>' : '<p class="meta">No check-ups recorded yet.</p>')+
+      flagBox + refBox + smsBox +
+    '</div></aside>';
+  const first = root.querySelector('textarea, .x');
+  if (first) first.focus();
+}
+
+/* ---------------- helpers ---------------- */
+function byId(id){ return state.mothers.find(m => m.id === id); }
+function setErr(id, msg){
+  const f = document.getElementById('f-'+id), e = document.getElementById('e-'+id);
+  if (f) f.classList.toggle('bad', !!msg);
+  if (e) e.textContent = msg || '';
+  return !msg;
+}
+function numIn(id, a, b, required){
+  const L = t(); const raw = document.getElementById(id).value.trim();
+  if (!raw) { if (required) { setErr(id, L.req); return {ok:false}; } setErr(id,''); return {ok:true, v:null}; }
+  const v = Number(raw.replace(',', '.'));
+  if (!isFinite(v) || v < a || v > b) { setErr(id, L.eRange(a,b)); return {ok:false}; }
+  setErr(id,''); return {ok:true, v};
+}
+function renderAll(){ renderPhone(); renderDash(); renderDrawer(); }
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-action]');
+  if (!b) return;
+  const a = b.dataset.action;
+  const L = t();
+  if (a === 'view'){
+    state.view = b.dataset.view;
+    document.getElementById('workspace').dataset.view = state.view;
+    document.getElementById('tab-phone').setAttribute('aria-selected', state.view === 'phone');
+    document.getElementById('tab-dash').setAttribute('aria-selected', state.view === 'dash');
+  }
+  if (a === 'net'){
+    state.online = !state.online;
+    if (state.online){
+      let n = 0;
+      state.mothers.forEach(m => {
+        if (!m.synced){ m.synced = true; m.isNew = true; n++; m.visits.forEach(v => v.synced = true); }
+        m.visits.forEach(v => { if (!v.synced){ v.synced = true; n++; m.isNew = true; } });
+      });
+      if (n) toast(L.synced(n));
+    } else toast(L.goneOff);
+    renderAll();
+  }
+  if (a === 'goto'){ state.screen = b.dataset.screen; if (state.screen === 'home') state.regDraft = null; renderPhone(); document.getElementById('p-body').scrollTop = 0; }
+  if (a === 'open-phone'){ state.motherId = b.dataset.id; state.screen = 'mother'; renderPhone(); }
+  if (a === 'kpi'){ state.kpi = (state.kpi === b.dataset.kpi && b.dataset.kpi !== 'all') ? 'all' : b.dataset.kpi; renderDash(); }
+  if (a === 'open-drawer'){ const m = byId(b.dataset.id); m.isNew = false; state.drawerId = m.id; state.drawerForm = null; state.smsLang = m.lang || 'hi'; renderDashTable(); renderDrawer(); }
+  if (a === 'close'){ const id = state.drawerId; state.drawerId = null; renderDrawer(); const btn = document.querySelector('[data-action="open-drawer"][data-id="'+id+'"]'); if (btn) btn.focus(); }
+  if (a === 'dform'){ state.drawerForm = b.dataset.form || null; renderDrawer(); }
+  if (a === 'smslang'){ state.smsLang = b.dataset.lang; renderDrawer(); }
+  if (a === 'unflag'){ byId(state.drawerId).highRisk = null; toast('High-risk mark removed.'); renderAll(); }
+  if (a === 'ref-seen'){ byId(state.drawerId).referral.status = 'Seen'; toast('Referral marked as seen at the facility.'); renderAll(); }
+  if (a === 'send-sms'){ toast('Demo only: 2 reminders would be queued. No SMS is sent from this prototype.'); }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'p-lang'){ state.lang = e.target.value; renderPhone(); }
+  if (e.target.id === 'd-village'){ state.village = e.target.value; renderDashTable(); }
+  if (e.target.id === 'r-lmp') showDerived();
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'p-search'){ state.phoneSearch = e.target.value; renderPhoneList(); }
+  if (e.target.id === 'd-search'){ state.dashSearch = e.target.value; renderDashTable(); }
+  if (e.target.id === 'r-lmp') showDerived();
+  if (e.target.id && e.target.id.startsWith('r-')){
+    state.regDraft = { name:val('r-name'), age:val('r-age'), abha:val('r-abha'), phone:val('r-phone'), lmp:val('r-lmp') };
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && state.drawerId){ state.drawerId = null; renderDrawer(); } });
+const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+function showDerived(){
+  const L = t(), box = document.getElementById('r-derived'), v = val('r-lmp');
+  if (!box) return;
+  if (!v){ box.hidden = true; return; }
+  const lmp = parseISO(v);
+  if (lmp > today || diffDays(today, lmp) > 294){ box.hidden = true; return; }
+  box.hidden = false;
+  box.innerHTML = '<span>'+esc(L.ga)+': <b class="num">'+Math.floor(diffDays(today,lmp)/7)+'</b></span><span>'+esc(L.edd)+': <b>'+esc(fmt(addDays(lmp,280), state.lang, true))+'</b></span>';
+}
+
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const L = t();
+  if (e.target.id === 'reg-form'){
+    let ok = true;
+    const name = val('r-name').trim();
+    ok = setErr('r-name', name ? '' : L.req) && ok;
+    const age = Number(val('r-age'));
+    ok = setErr('r-age', !val('r-age').trim() ? L.req : (!(age >= 14 && age <= 55) ? L.eAge : '')) && ok;
+    const abhaDigits = val('r-abha').replace(/\D/g,'');
+    ok = setErr('r-abha', !abhaDigits ? L.req : (abhaDigits.length !== 14 ? L.eAbha : '')) && ok;
+    const ph = val('r-phone').replace(/\D/g,'');
+    ok = setErr('r-phone', !ph ? L.req : (ph.length !== 10 ? L.ePhone : '')) && ok;
+    const lv = val('r-lmp');
+    let lmp = lv ? parseISO(lv) : null;
+    ok = setErr('r-lmp', !lv ? L.req : (lmp > today ? L.eFuture : (diffDays(today,lmp) > 294 ? L.eLmp : ''))) && ok;
+    if (!ok) { const bad = document.querySelector('.field.bad input, .field.bad select'); if (bad) bad.focus(); return; }
+    seq++;
+    const m = { id:'m'+seq, name, nameHi:'', age, village:ASHA_VILLAGE,
+      abha: abhaDigits.replace(/^(\d{2})(\d{4})(\d{4})(\d{4})$/, '$1-$2-$3-$4'), phone: ph, lmp, lang: 'hi',
+      synced: state.online, isNew: state.online, visits: [], highRisk: null, referral: null };
+    state.mothers.push(m);
+    state.regDraft = null;
+    state.motherId = m.id; state.screen = 'mother';
+    toast(state.online ? L.savedOn : L.savedOff);
+    renderAll();
+  }
+  if (e.target.id === 'log-form'){
+    const m = byId(state.motherId);
+    let ok = true;
+    const dv = val('l-date'); const d = dv ? parseISO(dv) : null;
+    ok = setErr('l-date', !dv ? L.req : (d > today ? L.eFuture : (d < m.lmp ? L.eBefore : ''))) && ok;
+    const hb = numIn('l-hb', 3, 20, false); const sys = numIn('l-sys', 60, 250, false); const dia = numIn('l-dia', 30, 150, false); const wt = numIn('l-wt', 25, 150, false);
+    ok = ok && hb.ok && sys.ok && dia.ok && wt.ok;
+    if (ok && ((sys.v == null) !== (dia.v == null))) { setErr(sys.v == null ? 'l-sys' : 'l-dia', L.req); ok = false; }
+    if (!ok) return;
+    m.visits.push({ date:d, hb:hb.v, bpS:sys.v, bpD:dia.v, wt:wt.v, by:'Kamla Devi (ASHA)', synced: state.online && m.synced });
+    if (state.online && m.synced) m.isNew = true;
+    state.screen = 'mother';
+    toast(state.online ? L.savedOn : L.savedOff);
+    renderAll();
+  }
+  if (e.target.id === 'flag-form'){
+    const reason = val('fl-reason').trim();
+    if (!setErr('fl-reason', reason ? '' : 'Add the clinician\'s note before saving.')) return;
+    byId(state.drawerId).highRisk = { by: val('fl-by'), reason, date: today };
+    state.drawerForm = null;
+    toast('High-risk mark saved. The ASHA sees it on her phone.');
+    renderAll();
+  }
+  if (e.target.id === 'ref-form'){
+    const dv = val('rf-date');
+    if (!setErr('rf-date', dv ? (parseISO(dv) > today ? 'This date cannot be in the future.' : '') : 'Choose a date.')) return;
+    byId(state.drawerId).referral = { to: val('rf-to'), date: parseISO(dv), status:'Pending' };
+    state.drawerForm = null;
+    toast('Referral recorded. It stays on the pending list until marked as seen.');
+    renderAll();
+  }
+});
+
+renderAll();
+})();
+</script>
+
+</body>
+</html>
